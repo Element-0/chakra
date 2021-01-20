@@ -10,7 +10,7 @@ srcDir        = "src"
 # Dependencies
 
 requires "nim >= 1.4.2"
-requires "winim, ezutils, cppinterop, ezsqlite3, ezfunchook"
+requires "winim, ezutils, cppinterop, ezsqlite3, ezfunchook, ezpdbparser"
 
-task build-dll, "Build chakra.dll":
-  exec "nim cpp --cc:clang_cl --app:lib --passC:/MD -d:chakra -o:chakra.dll src/ezchakra.nim"
+task build_dll, "Build chakra.dll":
+  exec "nimble cpp --cc:clang_cl --app:lib --passC:/MD -d:chakra -o:chakra.dll src/ezchakra.nim"
