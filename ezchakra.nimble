@@ -4,7 +4,7 @@ version       = "0.1.0"
 author        = "CodeHz"
 description   = "Chakra for ElementZero"
 license       = "LGPL-3.0"
-srcDir        = "src"
+srcDir        = "."
 
 
 # Dependencies
