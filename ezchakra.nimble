@@ -22,7 +22,7 @@ task prepare, "Prepare":
   cpFile(gorge("nimble path ezfunchook").strip / "funchook.dll", "funchook.dll")
 
 task build_dll, "Build chakra.dll":
-  exec "nimble cpp --cc:clang_cl --app:lib --passC:/MD -d:chakra -o:chakra.dll ezchakra.nim"
+  exec "nimble cpp --cc:clang_cl --app:lib --passC:/MD -d:chakra -o:chakra.dll --gc:arc ezchakra.nim"
 
 before build_dll:
   prepareTask()
