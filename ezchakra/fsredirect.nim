@@ -136,3 +136,14 @@ proc NtQueryFullAttributesFile(
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"NtQueryFullAttributesFile").} =
   fixupPath["FULLATTR"](objectAttributes)
   NtQueryFullAttributesFile_origin(objectAttributes, attributes)
+
+var logs: seq[string]
+
+proc LdrLoadDll(
+  path: LPWSTR;
+  flags: PULONG;
+  filename: PUNICODE_STRING;
+  handle: PHANDLE;
+): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"LdrLoadDll").} =
+  echo "[DLL] ", filename[].Buffer
+  LdrLoadDll_origin(path, flags, filename, handle)
