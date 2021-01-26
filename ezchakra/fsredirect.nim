@@ -137,8 +137,6 @@ proc NtQueryFullAttributesFile(
   fixupPath["FULLATTR"](objectAttributes)
   NtQueryFullAttributesFile_origin(objectAttributes, attributes)
 
-var logs: seq[string]
-
 proc LdrLoadDll(
   path: LPWSTR;
   flags: PULONG;
