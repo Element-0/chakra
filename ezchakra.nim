@@ -1,12 +1,11 @@
-import ezchakra/[importmc, hookmc]
+import ezchakra/[importmc, hookmc, hookos, hookctx, stop]
 
-export importmc, hookmc
+export importmc, hookmc, hookos, stop
 
 when defined(chakra):
   {.compile: "ezchakra/forward.cpp".}
   import os
 
-  import ezchakra/hookctx
   import winim/lean
   import cppinterop/cppstr
   import ezchakra/fsredirect
