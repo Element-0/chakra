@@ -1,14 +1,15 @@
+import ezchakra/[importmc, hookmc]
+
+export importmc, hookmc
+
 when defined(chakra):
   {.compile: "ezchakra/forward.cpp".}
   import os
 
+  import ezchakra/hookctx
   import winim/lean
   import cppinterop/cppstr
   import ezchakra/fsredirect
-
-  import ezchakra/importmc
-  import ezchakra/hookmc
-  import ezchakra/hookctx
 
   proc getServerVersionString(): CppString {.hookmc: "?getServerVersionString@Common@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ".} =
     return $getServerVersionString_origin() & " with EZR"
