@@ -11,7 +11,7 @@ installExt    = @["nim", "dll", "pdb"]
 # Dependencies
 
 requires "nim >= 1.4.2"
-requires "winim, ezutils, cppinterop, ezsqlite3, ezfunchook, ezpdbparser"
+requires "winim, ezutils, ezpipe, cppinterop, ezsqlite3, ezfunchook, ezpdbparser, ezcommon"
 
 from os import `/`
 from strutils import strip
@@ -27,7 +27,7 @@ task prepare, "Prepare":
     exec "curl -Lo ChakraCore.dll " & chakracorelink
 
 task build_dll, "Build chakra.dll":
-  exec "nimble cpp --cc:vcc --app:lib --debuginfo:on --passC:-MD --passC:-GL -d:danger --opt:speed -d:chakra -o:chakra.dll --gc:arc ezchakra.nim"
+  exec "nimble cpp --cc:vcc --app:lib --debuginfo:on --passC:-MD --passC:-GL -d:danger -d:useMalloc --opt:speed -o:chakra.dll --gc:arc ezchakra.nim"
 
 before install:
   prepareTask()
