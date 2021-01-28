@@ -1,5 +1,3 @@
-import hookmc, winim/lean
-
 type MayClosureTask = object
   case isClosure: bool
   of true:
@@ -8,6 +6,8 @@ type MayClosureTask = object
     normal: proc () {.cdecl, noconv, locks: "unknown".}
 
 when defined(chakra):
+  import hookmc, winim/lean
+
   var closure_chan: Channel[MayClosureTask]
   closure_chan.open(16)
   let mainthread = GetCurrentThreadId()
