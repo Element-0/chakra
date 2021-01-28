@@ -59,14 +59,13 @@ proc log_va(
   if not ipcValid():
     log_va_origin(self, area, level, src, line, column, fmt, args)
   else:
-    let ldata = LogData(
+    ipcSubmit LogData(
       area: mapLogArea area,
       level: mapLogLevel level,
-      source: $src,
-      line: line,
-      column: column,
+      src_name: $src,
+      src_line: line,
+      src_column: column,
       content: cfmt(fmt, args).strip()
     )
-    ipcSubmit RequestPacket(kind: req_log, logData: ldata)
 
 {.used.}
