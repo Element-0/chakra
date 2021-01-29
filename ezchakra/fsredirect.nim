@@ -141,5 +141,5 @@ proc LdrLoadDll(
   handle: PHANDLE;
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"LdrLoadDll").} =
   let name = $filename[].Buffer
-  Log.notice("Loading dll", name: name)
+  Log.notice("Loading dll", "DLL", name: name)
   LdrLoadDll_origin(path, flags, filename, handle)

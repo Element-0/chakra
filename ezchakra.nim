@@ -8,7 +8,7 @@ when defined(chakra):
   import cppinterop/cppstr
   import ezchakra/[fsredirect, logcollector, entry, log]
 
-  Log.notice("ElementZero is loading...")
+  Log.notice("ElementZero is loading...", "STARTUP")
 
   proc getServerVersionString(): CppString {.hookmc: "?getServerVersionString@Common@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ".} =
     return $getServerVersionString_origin() & " with EZR"
