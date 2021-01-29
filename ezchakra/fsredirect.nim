@@ -1,8 +1,5 @@
-import os, tables, strutils
-
-import winim/lean
-
-import hookos
+import std/[os, tables, strutils], winim/lean
+import ./hookos, ./log
 
 {.used.}
 
@@ -143,5 +140,6 @@ proc LdrLoadDll(
   filename: PUNICODE_STRING;
   handle: PHANDLE;
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"LdrLoadDll").} =
-  echo "[DLL] ", filename[].Buffer
+  let name = $filename[].Buffer
+  Log.notice("Loading dll", name: name)
   LdrLoadDll_origin(path, flags, filename, handle)
