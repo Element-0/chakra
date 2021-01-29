@@ -1,14 +1,18 @@
 import macros
 
-import importmc
 import ezfunchook
 import ezutils
 
-import hookctx
+import ./importmc, ./hookctx
+import ./private/abifix
 
-macro hookmc*(sym: static string, body: untyped) =
+macro hookmc*(sym: static string, body: untyped{nkProcDef}) =
+  let params = if body[4].kind == nnkPragma and body[4].len == 1 and $body[4][0][0] == "thisabi":
+    transformParams(body[4][0][1], body[3])
+  else:
+    body[3].copy()
   let xtype = nnkProcTy.newTree(
-    body[3].copy(),
+    params,
     nnkPragma.newTree(ident "cdecl")
   )
   let fname = getNimIdent(body[0])
@@ -35,6 +39,7 @@ macro hookmc*(sym: static string, body: untyped) =
   )
   let hooked = body.copy()
   hooked[0] = hooked_id
+  hooked[3] = params
   hooked[4] = nnkPragma.newTree(
     ident "cdecl"
   )
