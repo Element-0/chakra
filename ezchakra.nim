@@ -6,7 +6,7 @@ when defined(chakra):
   {.compile: "ezchakra/forward.cpp".}
   import winim/lean
   import cppinterop/cppstr
-  import ezchakra/[fsredirect, logcollector, entry, log]
+  import ezchakra/log, ezchakra/private/[fsredirect, logcollector, entry]
 
   Log.notice("ElementZero is loading...", "STARTUP")
 

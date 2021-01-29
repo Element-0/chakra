@@ -1,5 +1,5 @@
 import std/strutils, cppinterop/stdarg, ezcommon/log
-import ./hookmc, ./ipc
+import ../hookmc, ../ipc
 
 func mapLogLevel(val: int32): LogLevel =
   case val:

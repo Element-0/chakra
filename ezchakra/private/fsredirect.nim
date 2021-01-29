@@ -1,5 +1,5 @@
 import std/[os, tables, strutils], winim/lean
-import ./hookos, ./log
+import ../hookos, ../log
 
 {.used.}
 

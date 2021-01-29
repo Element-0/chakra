@@ -1,4 +1,4 @@
-import ./hookmc, ./ipc, ./hookctx, ./log
+import ../hookmc, ../ipc, ../hookctx, ../log
 
 proc main(argc: int; argv, envp: cstringArray): int {.hookmc: "main".} =
   if ipcValid():
