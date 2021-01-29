@@ -52,19 +52,18 @@ proc log_va(
   self: pointer;
   area, level: int32;
   src: cstring;
-  line, column: int32;
+  line, idx: int32;
   fmt: cstring;
   args: va_list
 ) {.hookmc: "?_log_va@LogDetails@BedrockLog@@AEAAXW4LogAreaID@@IPEBDHH1PEAD@Z".} =
   if not ipcValid():
-    log_va_origin(self, area, level, src, line, column, fmt, args)
+    log_va_origin(self, area, level, src, line, idx, fmt, args)
   else:
     ipcSubmit LogData(
       area: mapLogArea area,
       level: mapLogLevel level,
-      src_name: $src,
-      src_line: line,
-      src_column: column,
+      source: $src,
+      line: line,
       content: cfmt(fmt, args).strip()
     )
 
