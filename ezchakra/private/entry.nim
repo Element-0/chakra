@@ -5,6 +5,7 @@ proc main(argc: int; argv, envp: cstringArray): int {.hookmc: "main".} =
     ipcSync RequestPacket(kind: req_ping), res:
       Log.debug("Checkpoint reached", "STARTUP", pong: $res)
       applyHooks()
-  main_origin(argc, argv, envp)
+  result = main_origin(argc, argv, envp)
+  ipcSubmit RequestPacket(kind: req_bye)
 
 {.used.}
