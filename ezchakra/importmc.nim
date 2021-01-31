@@ -38,7 +38,7 @@ proc directImport(sym: string; body: NimNode): NimNode =
 
 proc abifixImport(sym: string; body: NimNode): NimNode =
   let buffer_id = nskParam.genSym "buffer"
-  let raw_id = nskLet.genSym sym
+  let raw_id = nskLet.genSym $body[0]
   let params = transformParams(buffer_id, body[3])
   let xtype = nnkProcTy.newTree(
     params,
@@ -52,7 +52,7 @@ proc abifixImport(sym: string; body: NimNode): NimNode =
     else: invoke.add(param[0])
   let wrapper = nnkDiscardStmt.newTree(invoke)
   let generated = nnkProcDef.newTree(
-    ident sym,
+    body[0],
     newEmptyNode(),
     newEmptyNode(),
     body[3].copy(),
