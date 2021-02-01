@@ -37,8 +37,11 @@ let filemap = {
   "ops.json": ms_null,
 }.toTable()
 
-converter UnicodeStringToWString(path: UNICODE_STRING): wstring =
-  result << cast[ptr UncheckedArray[WCHAR]](path.Buffer).toOpenArray(0, int(path.Length) div 2 - 1)
+converter `$`(path: UNICODE_STRING): string =
+  let l = int32(path.Length) div 2
+  let mlen = WideCharToMultiByte(CP_UTF8, 0, path.Buffer, l, nil, 0, nil, nil)
+  result = newString mLen
+  discard WideCharToMultiByte(CP_UTF8, 0, path.Buffer, l, result.cstring, mLen, nil, nil)
 
 proc realPath(attr: OBJECT_ATTRIBUTES): string =
   if attr.RootDirectory != 0:
@@ -50,9 +53,9 @@ proc realPath(attr: OBJECT_ATTRIBUTES): string =
       FILE_NAME_NORMALIZED)
     assert len > 8
     result =
-      $$cast[LPWSTR](cast[int](addr buffer) + 8) / $attr.ObjectName.Buffer
+      $$cast[LPWSTR](cast[int](addr buffer) + 8) / $attr.ObjectName[]
   else:
-    result = $attr.ObjectName.Buffer
+    result = $attr.ObjectName[]
     if result.startsWith(r"\??\") and result[5] == ':':
       result = relative result.substr(4)
     elif result.startsWith(r"\"):
