@@ -50,7 +50,7 @@ proc realPath(attr: OBJECT_ATTRIBUTES): string =
       FILE_NAME_NORMALIZED)
     assert len > 8
     result =
-      $$cast[LPWSTR](cast[int](addr buffer) + 8) / $attr.ObjectName[]
+      $$cast[LPWSTR](cast[int](addr buffer) + 8) / $attr.ObjectName.Buffer
   else:
     result = $attr.ObjectName.Buffer
     if result.startsWith(r"\??\") and result[5] == ':':
