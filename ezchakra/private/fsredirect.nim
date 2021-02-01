@@ -5,8 +5,6 @@ import ../hookos, ../log
 
 let appdata = getAppDir()
 let workdir = absolutePath getCurrentDir()
-let apphandle = CreateFile(appdata, GENERIC_READ or GENERIC_WRITE,
-    FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0)
 
 proc relative(x: string): string = relativePath(x, workdir)
 proc basepath(x: string): string = x.split('\\', 2)[0]
@@ -39,6 +37,9 @@ let filemap = {
   "ops.json": ms_null,
 }.toTable()
 
+converter UnicodeStringToWString(path: UNICODE_STRING): wstring =
+  result << cast[ptr UncheckedArray[WCHAR]](path.Buffer).toOpenArray(0, int(path.Length) div 2 - 1)
+
 proc realPath(attr: OBJECT_ATTRIBUTES): string =
   if attr.RootDirectory != 0:
     var buffer: array[4096, WCHAR]
@@ -49,7 +50,7 @@ proc realPath(attr: OBJECT_ATTRIBUTES): string =
       FILE_NAME_NORMALIZED)
     assert len > 8
     result =
-      $$cast[LPWSTR](cast[int](addr buffer) + 8) / $attr.ObjectName.Buffer
+      $$cast[LPWSTR](cast[int](addr buffer) + 8) / $attr.ObjectName[]
   else:
     result = $attr.ObjectName.Buffer
     if result.startsWith(r"\??\") and result[5] == ':':
@@ -58,19 +59,32 @@ proc realPath(attr: OBJECT_ATTRIBUTES): string =
       return
   result = relative result
 
-proc fixupPath[TAG: static string](objectAttributes: POBJECT_ATTRIBUTES) =
+type FixEnv = object
+  raw: wstring
+  sys: UNICODE_STRING
+
+proc fixupPath[TAG: static string](env: var FixEnv; objectAttributes: POBJECT_ATTRIBUTES) =
   let brel = realPath(objectAttributes[])
   if brel[0] in {'.', '\\'} or isAbsolute(brel):
     return
   case filemap.getOrDefault(basepath brel):
   of ms_asset:
-    let buffer = +$brel
-    var tmp: UNICODE_STRING
-    RtlInitUnicodeString(addr tmp, buffer)
-    objectAttributes[].RootDirectory = apphandle
-    objectAttributes[].ObjectName = addr tmp
+    env.raw = +$(r"\??\" & appdata / brel)
+    RtlInitUnicodeString(addr env.sys, env.raw)
+    objectAttributes[].RootDirectory = 0
+    objectAttributes[].ObjectName = addr env.sys
   else:
     discard
+
+template wrapFsAccess(tag: string; action: untyped): untyped =
+  var tmp {.gensym.}: FixEnv
+  fixupPath[tag](tmp, objectAttributes)
+  when defined(debugFS):
+    result = action
+    if result != 0:
+      Log.notice("Result", "CREATE", path: $objectAttributes[].ObjectName[], result: result)
+  else:
+    action
 
 proc NtCreateFile(
   phandle: PHANDLE;
@@ -82,8 +96,7 @@ proc NtCreateFile(
   eaBuffer: ptr UncheckedArray[byte];
   eaLength: int32;
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"NtCreateFile").} =
-  fixupPath["CREATE"](objectAttributes)
-  NtCreateFile_origin(
+  wrapFsAccess "CREATE": NtCreateFile_origin(
     phandle,
     access,
     objectAttributes,
@@ -104,8 +117,7 @@ proc NtOpenFile(
   ioStatusBlock: PIO_STATUS_BLOCK;
   shareAccess, openOptions: int32;
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"NtOpenFile").} =
-  fixupPath["OPEN"](objectAttributes)
-  NtOpenFile_origin(
+  wrapFsAccess "OPEN": NtOpenFile_origin(
     phandle,
     access,
     objectAttributes,
@@ -117,22 +129,19 @@ proc NtOpenFile(
 proc NtDeleteFile(
   objectAttributes: POBJECT_ATTRIBUTES
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"NtDeleteFile").} =
-  fixupPath["OPEN"](objectAttributes)
-  NtDeleteFile_origin(objectAttributes)
+  wrapFsAccess "DELETE": NtDeleteFile_origin(objectAttributes)
 
 proc NtQueryAttributesFile(
   objectAttributes: POBJECT_ATTRIBUTES;
   attributes: pointer;
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"NtQueryAttributesFile").} =
-  fixupPath["ATTR"](objectAttributes)
-  NtQueryAttributesFile_origin(objectAttributes, attributes)
+  wrapFsAccess "ATTR": NtQueryAttributesFile_origin(objectAttributes, attributes)
 
 proc NtQueryFullAttributesFile(
   objectAttributes: POBJECT_ATTRIBUTES;
   attributes: pointer;
 ): NTSTATUS {.stdcall, hookos(r"ntdll.dll", r"NtQueryFullAttributesFile").} =
-  fixupPath["FULLATTR"](objectAttributes)
-  NtQueryFullAttributesFile_origin(objectAttributes, attributes)
+  wrapFsAccess "FULLATTR": NtQueryFullAttributesFile_origin(objectAttributes, attributes)
 
 proc LdrLoadDll(
   path: LPWSTR;
