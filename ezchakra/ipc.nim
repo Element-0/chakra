@@ -27,6 +27,9 @@ when defined(chakra):
     while true:
       let req = chan.recv()
       pipe.send: ~>$ req.packet
+      if req.packet.kind.noReply:
+        assert req.kind == irk_drop
+        continue
       let data = ResponsePacket <<- pipe.recv()
       case req.kind:
       of irk_drop:
@@ -56,8 +59,11 @@ else:
   proc ipcRequest*(req: IpcRequest) {.importc, dynlib: "chakra.dll".}
   proc ipcValid*(): bool {.importc, dynlib: "chakra.dll".}
 
-proc ipcSubmit*(pkt: RequestPacket) {.inline.} = ipcRequest IpcRequest(packet: pkt, kind: irk_drop)
+proc ipcSubmit*(pkt: RequestPacket) {.inline.} =
+  assert not pkt.kind.noReply
+  ipcRequest IpcRequest(packet: pkt, kind: irk_drop)
 proc ipcAsync*(pkt: RequestPacket, fn: proc (pkt: ResponsePacket) {.gcsafe, locks: 0.}) {.inline.} =
+  assert not pkt.kind.noReply
   ipcRequest IpcRequest(packet: pkt, kind: irk_async, handler: fn)
 template ipcSync*(pkt: RequestPacket, name, blk: untyped): untyped =
   var chan: Channel[ResponsePacket]
