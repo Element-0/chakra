@@ -1,4 +1,6 @@
+{.experimental: "caseStmtMacros".}
 {.deadCodeElim: on.}
+import fusion/matching
 
 type
   DedicatedServer* = distinct pointer
@@ -18,8 +20,9 @@ when defined(chakra):
     result = server.startServer_origin(str)
 
   proc addServerHook*(hook: DedicatedServerHook) {.exportc, dynlib.} =
-    if started.isSome():
-      hook started.unsafeGet()
+    case started:
+    of Some(@server):
+      hook server
     else:
       hooks.add hook
 else:
