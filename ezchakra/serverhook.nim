@@ -20,8 +20,7 @@ when defined(chakra):
     result = server.startServer_origin(str)
 
   proc addServerHook*(hook: DedicatedServerHook) {.exportc, dynlib.} =
-    case started:
-    of Some(@server):
+    if Some(@server) ?= started:
       hook server
     else:
       hooks.add hook
