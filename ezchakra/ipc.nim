@@ -1,3 +1,5 @@
+{.experimental: "caseStmtMacros".}
+import fusion/matching
 import ezcommon/ipc
 export ipc
 
@@ -31,14 +33,12 @@ when defined(chakra):
         assert req.kind == irk_drop
         continue
       let data = ResponsePacket <<- pipe.recv()
-      case req.kind:
-      of irk_drop:
+      case req:
+      of drop():
         if data.kind == res_failed:
           quit data.errMsg
-      of irk_sync:
-        req.chanref[].send data
-      of irk_async:
-        req.handler data
+      of sync(chanref: @chan): chan[].send data
+      of async(handler: @handler): handler data
 
   let path = getEnv("EZPIPE", "debug")
   if path != "debug":
@@ -65,12 +65,9 @@ proc ipcSubmit*(pkt: RequestPacket) {.inline.} =
 proc ipcAsync*(pkt: RequestPacket, fn: proc (pkt: ResponsePacket) {.gcsafe, locks: 0.}) {.inline.} =
   assert not pkt.kind.noReply
   ipcRequest IpcRequest(packet: pkt, kind: irk_async, handler: fn)
-template ipcSync*(pkt: RequestPacket, name, blk: untyped): untyped =
+proc ipcSync*(pkt: RequestPacket): ResponsePacket =
   var chan: Channel[ResponsePacket]
-  try:
-    chan.open(1)
-    ipcRequest IpcRequest(packet: pkt, kind: irk_sync, chanref: addr chan)
-    let name = chan.recv()
-    blk
-  finally:
-    chan.close()
+  defer: chan.close()
+  chan.open(1)
+  ipcRequest IpcRequest(packet: pkt, kind: irk_sync, chanref: addr chan)
+  chan.recv()

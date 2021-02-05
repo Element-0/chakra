@@ -11,7 +11,7 @@ installExt    = @["nim", "dll", "pdb"]
 # Dependencies
 
 requires "nim >= 1.4.2"
-requires "winim, ezutils, ezpipe, cppinterop, ezsqlite3, ezfunchook, ezpdbparser, ezcommon"
+requires "winim, fusion, ezutils, ezpipe, cppinterop, ezsqlite3, ezfunchook, ezpdbparser, ezcommon"
 
 from os import `/`
 from strutils import strip

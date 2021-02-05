@@ -13,11 +13,8 @@ when defined(chakra):
   let mainthread = GetCurrentThreadId()
 
   proc invoke(task: MayClosureTask) {.inline.} =
-    case task.isClosure:
-    of true:
-      task.closure()
-    of false:
-      task.normal()
+    if task.isClosure: task.closure()
+    else: task.normal()
 
   proc isMainThread: bool {.inline.} = mainthread == GetCurrentThreadId()
 
