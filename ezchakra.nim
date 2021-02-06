@@ -1,6 +1,6 @@
-import ezchakra/[importmc, hookmc, hookos, hookctx, stop]
+import ezchakra/[importmc, hookmc, hookos, hookctx, stop, event]
 
-export importmc, hookmc, hookos, stop
+export importmc, hookmc, hookos, stop, event
 
 when defined(chakra):
   {.compile: "ezchakra/forward.cpp".}
