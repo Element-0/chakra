@@ -1,4 +1,3 @@
-{.experimental: "caseStmtMacros".}
 import std/macros, fusion/matching
 
 type
@@ -8,9 +7,7 @@ type
 macro emit*[T](emitter: EventEmitter[T]; input: varargs[untyped]) =
   let itemsym = genSym(nskForVar, "item")
   let call = newCall(itemsym)
-  echo treeRepr input
-  case input
-  of Arglist(len: > 0, [all @args], last: @collect is StmtList()):
+  if Arglist(len: > 0, [all @args], last: @collect is StmtList()) ?= input:
     for arg in args[0..^2]:
       call.add arg
     let it = ident "it"
